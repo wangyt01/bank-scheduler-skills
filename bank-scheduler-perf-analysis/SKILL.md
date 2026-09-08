@@ -1,7 +1,13 @@
 ---
 name: bank-scheduler-perf-analysis
+slug: bank-scheduler-perf-analysis
+displayName: 并发明细型调度任务性能分析
+summary: 核实调度实参、重建工作线程会话、单笔耗时分布与日志间隔归因，判定并发明细型调度慢在数据积压、慢SQL、单笔固定开销还是无效功放大，产出 P0-P2 分级优化建议。
 description: "并发明细型调度任务性能分析。当用户说\"这个调度任务很慢/用时长\"\"收款自动入账慢\"\"分析是数据量大还是SQL慢\"\"调整线程数/回溯天数后反而更慢了\"\"调度日志性能分析、出个性能分析报告\"时使用。给定调度日志目录（logging-YYYY-MM-DD.N.log 分卷，gz/平铺/套目录均可），核实调度实参是否真生效（threadCount/backDays 常见配置未生效）、重建工作线程会话、统计单笔耗时分布、按日志间隔把时间归因到具体环节、定位无打点区间、解码 base64 SQL、统计失败原因分布（识别无效明细自我放大），支持调整前后两份日志对比，产出结论先行的 Markdown 报告与 P0-P2 分级建议；可选提供工程源码路径核对代码。与报文往返型分析（scheduler-perf-analysis）互补。仅只读分析：不修改日志与源码，不执行数据库操作。"
-version: 1.0.0
+version: 1.0.1
+category: devtools
+platforms: [WorkBuddy]
+license: MIT
 agent_created: true
 ---
 

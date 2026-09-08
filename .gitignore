@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local backups (skill_ops.py snapshots)
+.backup/
+
+# WorkBuddy workspace data
+.workbuddy/

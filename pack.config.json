@@ -1,0 +1,11 @@
+{
+  "format": "md",
+  "output": "dist",
+  "skills": [
+    "bank-scheduler-perf-analysis",
+    "getbankreceipts-perf-analysis",
+    "hisdetails-perf-analysis",
+    "scheduler-perf-analysis",
+    "scheduler-thread-dump-analysis"
+  ]
+}

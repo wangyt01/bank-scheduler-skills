@@ -1,7 +1,10 @@
 ---
 name: scheduler-thread-dump-analysis
-description: 调度卡死线程快照分析（jstack/trace dump 归因）。当用户说"调度卡死了/卡主了""线程快照分析""jstack分析""线程dump分析""Worker线程占满""CountDownLatch等待不退出""又卡死了，和上次一样吗"时使用。给定 >=2 次线程快照文件（jstack/jcad/arthas 导出 txt），自动解析线程块并按签名分类（CountDownLatch 主线程等待 / Redisson 解锁与等锁 / 银企 Socket / HTTP / DB / netty 空闲 / 哨兵正常长连接），统计卡死 Worker 清单，做跨采样一致性判定（静态卡死 vs 慢执行），提取 JVM 运行时长与堆内存排除 GC 因素，追溯"主线程 await → 根因子线程卡点"，可对照历史卡死分析文档做同源判定，产出 Markdown 归因报告与 P0/P1 建议、Redis/sentinel 取证动作。仅只读分析：不修改快照与源码，仅用 Python 标准库（>=3.10）。
-version: 1.0.0
+slug: scheduler-thread-dump-analysis
+displayName: 调度卡死线程快照分析
+summary: 多次线程快照签名分类与跨采样一致性判定，追溯主线程 await 到根因子卡点，支持历史复卡同源判定，产出归因报告与取证清单。
+description: 调度卡死线程快照分析（jstack/trace dump 归因）。当用户说"调度卡死了/卡主了""线程快照分析""jstack分析""线程dump分析""Worker线程占满""CountDownLatch等待不退出""又卡死了，和上次一样吗"时使用。给定 >=2 次线程快照文件（jstack/jcad/arthas 导出 txt，>=3 次更佳、间隔 10~30s），自动解析线程块并按签名分类（CountDownLatch 主线程等待 / Redisson 解锁与等锁 / 银企 Socket / HTTP / DB / netty 空闲 / 哨兵正常长连接），统计卡死 Worker 清单，做跨采样一致性判定（静态卡死 vs 慢执行），提取 JVM 运行时长与堆内存排除 GC 因素，追溯"主线程 await → 根因子线程卡点"，可对照历史卡死分析文档做同源判定，产出 Markdown 归因报告与 P0/P1 建议、Redis/sentinel 取证动作。仅只读分析：不修改快照与源码，仅用 Python 标准库（>=3.10）。
+version: 1.0.1
 category: devtools
 platforms: [WorkBuddy]
 license: MIT
@@ -19,7 +22,7 @@ agent_created: true
 
 | 项 | 必需 | 缺省行为 |
 |---|---|---|
-| 线程快照文件（jstack/jcad/arthas 导出 txt，**>=3 次**、间隔 10~30s 最佳） | 是 | 只有 1 次时只能分类不能判"静态卡死"，报告须标注 |
+| 线程快照文件（jstack/jcad/arthas 导出 txt，**>=2 次**可跑，**>=3 次**、间隔 10~30s 最佳） | 是 | 只有 1 次时只能分类不能判"静态卡死"，报告须标注 |
 | 关注线程名（如 `RTF_CLUSTERED_JOB_SCHEDULER_Worker-44`） | 否 | 脚本按 `--worker-pattern` 自动发现所有卡死 Worker |
 | 历史卡死分析文档（路径） | 否 | 给了则做逐帧同源比对；没给则输出首次归因 |
 | 工程源码路径 | 否 | 给了则把卡点落到具体类与行，核对锁/超时逻辑 |

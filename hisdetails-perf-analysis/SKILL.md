@@ -1,5 +1,8 @@
 ---
 name: hisdetails-perf-analysis
+slug: hisdetails-perf-analysis
+displayName: 财司历史明细获取性能分析
+summary: 逐页配对请求与返回报文，量化银企 RTT、空页占比与入库条数，判定慢在单条入库、慢SQL 还是报文往返，产出分级优化建议。
 description: 财司历史明细获取性能分析（计划任务 HisDetails）。当用户说"财司历史明细获取很慢/用时长""分析一下是入库慢还是报文慢""历史明细调度日志性能分析""这个调度为什么这么久，出个性能分析报告"时使用。全量扫描 logging 分卷调度日志，逐页配对请求与返回报文，量化银企 RTT、空页占比、本地处理耗时与入库/跳过条数，对账条数表现，判定慢在"单条入库慢/慢SQL/报文往返慢"三候选中的哪一类，产出 HTML 分析报告与分级优化建议。仅只读分析：不修改日志与源码，不执行数据库操作。
 version: 1.0.0
 category: devtools
