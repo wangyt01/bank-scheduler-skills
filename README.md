@@ -18,8 +18,9 @@ WorkBuddy 调度任务性能分析 Skill 套件 —— 面向银企直联调度�
 | 调度任务性能分析（通用版） | `scheduler-perf-analysis/` | 任意调度任务：业务标记自动发现、配对类型自动选择、标记映射可扩展 |
 | 并发明细型调度任务性能分析 | `bank-scheduler-perf-analysis/` | 收款自动入账类：traceId+线程名会话重建、单笔耗时分布、间隔归因、调度实参核查、失败原因 TOP |
 | 调度卡死线程快照分析 | `scheduler-thread-dump-analysis/` | jstack/trace dump 多快照归因：签名分类、静态卡死一致性判定、Redisson/银企 Socket/HTTP 卡点识别、历史复卡同源判定 |
+| 变更日志记录 | `changelog-record/` | 代码变更/修复/重构后自动生成标准化变更日志（问题/根因/方案/文件清单/验证/效果），按月份目录归档 |
 
-五个 skill 均为**只读分析**：不修改日志与源码、不执行数据库操作、仅用 Python 标准库（≥3.10）。
+前五个 skill 均为**只读分析**：不修改日志与源码、不执行数据库操作、仅用 Python 标准库（≥3.10）。`changelog-record` 为**写入型**：仅向指定 `需求设计/changelogs` 目录生成 Markdown 变更日志。
 
 ## 安装
 

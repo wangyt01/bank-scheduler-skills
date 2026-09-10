@@ -6,6 +6,7 @@
     "getbankreceipts-perf-analysis",
     "hisdetails-perf-analysis",
     "scheduler-perf-analysis",
-    "scheduler-thread-dump-analysis"
+    "scheduler-thread-dump-analysis",
+    "changelog-record"
   ]
 }
