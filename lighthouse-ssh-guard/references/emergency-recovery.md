@@ -17,6 +17,8 @@
 
 WebShell 若能登录，重启前可快速取证：`uptime; free -m; ps aux | wc -l; dmesg | tail -20`。
 
+**⚠️ 反复僵死（重启后数小时内再次僵死）**：说明 guest 内有进程在持续触发（fork 炸弹、失控 agent、插件泄漏）。此时单纯重启是跑步机——重启后**立即**通过 WebShell 执行 `references/wedge-triage.sh`（只读取证，11 个维度：内存/进程数/D-Z 状态/OOM 日志/云 agent 存活/openclaw 与 docker 嫌疑/cron/登录/磁盘 inode），输出自动存盘 `/root/wedge-triage-*.log`。拿到报告锁定元凶后再修复，否则僵死会无限循环。
+
 ### 第 0 步：服务端实况三连（30 秒定位 90% 的失联）
 
 ```bash

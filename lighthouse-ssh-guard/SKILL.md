@@ -4,7 +4,7 @@ slug: lighthouse-ssh-guard
 displayName: 轻量云 SSH 失联防护护栏
 summary: 腾讯轻量应用服务器 SSH/sshd/防火墙/端口类高危操作防护。基于两次真实 22 端口失联事故提炼：显式即排他（Port 指令顶掉隐式默认端口）、MaxStartups 爆破压力随机丢连接、变更后监听验证四连，附失联诊断决策树与应急恢复手册。
 description: 腾讯轻量应用服务器（Lighthouse）SSH 失联防护护栏。基于 2026-09-28 两次真实 22 端口失联事故提炼，核心规则：①显式即排他——sshd 的 Port/ListenAddress 一旦显式指定，隐式默认值立即失效，追加 Port 443 会顶掉未显式声明的 Port 22；②sshd -t 只查语法不查语义，变更后必须 ss -tln 核对监听 + sshd -T 核对生效配置 + 外部 banner 实测；③MaxStartups 默认值在互联网爆破压力下会随机丢弃合法新连接，症状为"时好时坏"。当用户说"服务器连不上""SSH 断了""22 端口失联""改 SSH 端口""加端口""改 sshd_config""动防火墙""ufw/firewall-cmd/iptables""服务器失联""远程登录不上""MaxStartups""sshd 配置变更"时使用。在执行任何涉及 SSH、sshd、防火墙、端口开放、远程连接、网络规则的服务器操作之前必须加载此技能。
-version: 2.1.0
+version: 2.1.1
 category: ops
 platforms: [WorkBuddy]
 license: MIT
