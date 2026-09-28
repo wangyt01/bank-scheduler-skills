@@ -7,6 +7,7 @@
     "hisdetails-perf-analysis",
     "scheduler-perf-analysis",
     "scheduler-thread-dump-analysis",
-    "changelog-record"
+    "changelog-record",
+    "lighthouse-ssh-guard"
   ]
 }
