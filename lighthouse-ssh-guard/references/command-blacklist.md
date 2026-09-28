@@ -13,6 +13,8 @@
 | `systemctl stop sshd` / `systemctl disable sshd` | SSH 服务停止/禁用 |
 | 删除/注释配置中已存在的显式 `Port 22` | 22 失去显式声明（事故 2 反向版） |
 | `rm /etc/ssh/sshd_config` | 配置丢失，sshd 无法启动 |
+| kill/stop/disable `tat_agent`、`stargate`、`barad`、`sgagent`，或删除 `/usr/local/qcloud/` | **云厂商 agent 全灭**：TAT 远程运维归零、监控失明、AI 无法自救（事故 3） |
+| fork 炸弹 / 无界循环建进程 / 不确认身份就批量 kill | 进程空间耗尽 → guest 僵死：TCP 通无 banner、agent 全灭、只能控制台重启 |
 | `visudo` 之外的任何 sudoers 编辑 | 语法错误 → 全员失去 sudo |
 
 ## B 级（需用户确认 + 完整流程才可执行）

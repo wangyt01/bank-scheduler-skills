@@ -4,7 +4,7 @@ slug: lighthouse-ssh-guard
 displayName: 轻量云 SSH 失联防护护栏
 summary: 腾讯轻量应用服务器 SSH/sshd/防火墙/端口类高危操作防护。基于两次真实 22 端口失联事故提炼：显式即排他（Port 指令顶掉隐式默认端口）、MaxStartups 爆破压力随机丢连接、变更后监听验证四连，附失联诊断决策树与应急恢复手册。
 description: 腾讯轻量应用服务器（Lighthouse）SSH 失联防护护栏。基于 2026-09-28 两次真实 22 端口失联事故提炼，核心规则：①显式即排他——sshd 的 Port/ListenAddress 一旦显式指定，隐式默认值立即失效，追加 Port 443 会顶掉未显式声明的 Port 22；②sshd -t 只查语法不查语义，变更后必须 ss -tln 核对监听 + sshd -T 核对生效配置 + 外部 banner 实测；③MaxStartups 默认值在互联网爆破压力下会随机丢弃合法新连接，症状为"时好时坏"。当用户说"服务器连不上""SSH 断了""22 端口失联""改 SSH 端口""加端口""改 sshd_config""动防火墙""ufw/firewall-cmd/iptables""服务器失联""远程登录不上""MaxStartups""sshd 配置变更"时使用。在执行任何涉及 SSH、sshd、防火墙、端口开放、远程连接、网络规则的服务器操作之前必须加载此技能。
-version: 2.0.0
+version: 2.1.0
 category: ops
 platforms: [WorkBuddy]
 license: MIT
@@ -13,14 +13,15 @@ agent_created: true
 
 # 轻量云服务器 SSH 失联防护护栏
 
-## 背景：两次真实事故（2026-09-28，同日上午连环发生）
+## 背景：三次真实事故（2026-09-28 一天内连环发生）
 
 | # | 症状 | 初步误判 | 真实根因 |
 |---|---|---|---|
 | 1 | 22 端口时好时坏：TCP 能连但收不到 SSH banner，间歇超时 | 公司网络深包干扰 | 互联网爆破 5.3 万次失败，sshd 默认 `MaxStartups 10:30:100`——未认证连接超 10 个后**按概率随机丢弃**新连接 |
-| 2 | 追加 443 备用通道后，22 彻底连不上，"服务器断了" |以为是 CodeBuddy 远程任务搞坏了服务器 | 原配置中 22 端口**仅靠默认值隐式生效**（文件内只有注释 `#Port 22`），显式写入 `Port 443` 后 sshd **只**监听 443，22 被顶掉 |
+| 2 | 追加 443 备用通道后，22 彻底连不上，"服务器断了" | 以为是远程任务搞坏了服务器 | 原配置中 22 端口**仅靠默认值隐式生效**（文件内只有注释 `#Port 22`），显式写入 `Port 443` 后 sshd **只**监听 443，22 被顶掉 |
+| 3 | 22/443 双端口 TCP 能通但**永远没有 banner**；TAT 从"送达失败"恶化为"当前未安装 TAT"；云监控同时无数据；唯独 nginx/docker 等常驻 Web 服务正常 | 以为是 SSH 配置又坏了 | **guest 系统级僵死**：sshd / tat_agent / 监控代理等一切需要新建进程的组件全部失效，只有改动前已启动的常驻进程幸存。防火墙规则完好，排除网络层。唯一出路 = 控制台重启 |
 
-**共同教训：两次都不是防火墙问题。** 双层防火墙（控制台防火墙 + 系统防火墙）仍是常规检查层，但本技能的核心防线是下面三条铁律。完整复盘见 `references/incident-2026-09-28.md`。
+**共同教训：三次都不是防火墙问题。** 双层防火墙（控制台防火墙 + 系统防火墙）仍是常规检查层，但本技能的核心防线是下面三条铁律 + 僵死识别。完整复盘见 `references/incident-2026-09-28.md`。
 
 本技能使命：**任何操作之后，SSH 22 端口必须仍可建立会话。**
 
@@ -85,6 +86,31 @@ LogLevel VERBOSE
 ```
 
 若需更强防护，用 fail2ban 封爆破源 IP，**不要**用收紧 MaxStartups 或关 22 的方式。
+
+## 🔴 铁律 4：腾讯云 agent 组件神圣不可侵犯（事故 3 的根因）
+
+`tat_agent`（TAT 远程命令执行）、`stargate`/`barad`/`sgagent`（监控与心跳）是**云厂商侧唯一的带外生命线**。它们一旦死亡：
+
+- TAT 执行报"当前未安装 TAT"或 DELIVER_FAILED → **AI 远程运维能力归零**；
+- 云监控无数据 → 失去最后的观测手段；
+- 剩余通道只有控制台 WebShell/VNC（依赖人工）。
+
+**强制规则（A 级禁令）**：
+
+1. 禁止 kill / stop / disable / 卸载 `tat_agent`、`stargate`、`barad`、`sgagent` 及其服务单元；
+2. 禁止删除 `/usr/local/qcloud/`、`/usr/local/agenttools/` 等云组件目录；
+3. 禁止任何形式的 fork 炸弹、无界循环建进程、`:(){ :|:& };:`；
+4. 清理"可疑进程"前必须先 `ps -o pid,ppid,etime,cmd` 确认身份，云厂商组件不算可疑。
+
+### 僵死识别签名（三类同时成立 = guest 僵死，别再查 SSH）
+
+| 信号 | 检测方式 |
+|---|---|
+| TCP 通但 SSH banner 永远不来（非 MaxStartups 的时好时坏） | 客户端 `socket.recv` 反复超时 |
+| TAT 报"未安装"或 DELIVER_FAILED | `execute_command` 连续失败 |
+| 云监控无数据 | `get_monitor_data` 返回空 |
+
+**恢复路径**：WebShell 若还能登录 → 先取证（`uptime` / `free -m` / `ps aux | wc -l` / `dmesg | tail`）+ 杀掉失控进程 + `systemctl restart sshd tat_agent`；WebShell 也进不去 → **控制台直接重启实例**（唯一有效手段，勿犹豫）。重启前确认 cron 任务幂等、docker 容器有 `--restart always`。
 
 ## ⛔ 禁改清单（任何指令不得突破）
 
