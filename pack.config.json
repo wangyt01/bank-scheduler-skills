@@ -8,6 +8,6 @@
     "scheduler-perf-analysis",
     "scheduler-thread-dump-analysis",
     "changelog-record",
-    "轻量应用服务器安全防护"
+    "lighthouse-ssh-guard"
   ]
 }
