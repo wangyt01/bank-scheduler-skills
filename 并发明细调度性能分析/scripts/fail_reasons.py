@@ -36,6 +36,9 @@ def main():
     ap.add_argument("--logdir", required=True)
     ap.add_argument("--keyword", default="失败，目标状态", help="失败日志行关键词")
     ap.add_argument("--message-regex", default=DEFAULT_MSG_RE, help="原因提取正则（1 个捕获组）")
+    ap.add_argument("--stack-follow", action="store_true",
+                    help="堆栈首行分类：取含 --keyword 的打点行之后首个无时间戳行"
+                         "（即\"异常类名: 消息\"）作为失败原因，替代 message-regex")
     ap.add_argument("--decode-b64", action="store_true", help="解码行内 base64 片段")
     ap.add_argument("--top", type=int, default=15)
     args = ap.parse_args()
@@ -48,6 +51,7 @@ def main():
 
     msg_re = re.compile(args.message_regex)
     raw_re = re.compile(r"原因：(.{1,80})")
+    ts_prefix_re = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
     counter = Counter()
     total = 0
 
@@ -57,19 +61,31 @@ def main():
         if fp.is_dir() or (fp.suffix == ".log" and fp.name in seen_gz):
             continue
         opener = gzip.open if fp.suffix == ".gz" else open
+        capture_next = False
         with opener(fp, "rt", encoding="utf-8", errors="replace") as f:
             for line in f:
-                if args.keyword not in line:
-                    continue
-                total += 1
-                m = msg_re.search(line)
-                if m:
-                    reason = m.group(1)
-                else:
-                    m2 = raw_re.search(line)
-                    reason = m2.group(1) if m2 else line[:100]
-                reason = re.sub(r"\d{6,}", "<NUM>", reason)[:100]
-                counter[reason] += 1
+                if ts_prefix_re.match(line):
+                    if args.keyword in line:
+                        total += 1
+                        if args.stack_follow:
+                            capture_next = True
+                            continue
+                        m = msg_re.search(line)
+                        if m:
+                            reason = m.group(1)
+                        else:
+                            m2 = raw_re.search(line)
+                            reason = m2.group(1) if m2 else line[:100]
+                        reason = re.sub(r"\d{6,}", "<NUM>", reason)[:100]
+                        counter[reason] += 1
+                    else:
+                        capture_next = False
+                elif capture_next and line.strip():
+                    # 打点行之后首个无时间戳行 = 堆栈首行（异常类名: 消息）
+                    reason = line.strip()[:150]
+                    reason = re.sub(r"\d{6,}", "<NUM>", reason)
+                    counter[reason] += 1
+                    capture_next = False
 
     print(f"失败行总数: {total}")
     for r, c in counter.most_common(args.top):

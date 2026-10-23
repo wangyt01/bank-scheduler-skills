@@ -222,3 +222,6 @@ __marimo__/
 
 # WorkBuddy workspace data
 .workbuddy/
+
+# 需求设计与变更日志（本地分析材料，不入库不推送）
+需求设计/
