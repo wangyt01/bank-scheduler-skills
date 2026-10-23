@@ -2,12 +2,12 @@
   "format": "md",
   "output": "dist",
   "skills": [
-    "bank-scheduler-perf-analysis",
-    "getbankreceipts-perf-analysis",
-    "hisdetails-perf-analysis",
-    "scheduler-perf-analysis",
-    "scheduler-thread-dump-analysis",
-    "changelog-record",
-    "lighthouse-ssh-guard"
+    "并发明细调度性能分析",
+    "电子回单获取性能分析",
+    "历史明细获取性能分析",
+    "通用调度性能分析",
+    "调度线程快照分析",
+    "变更日志记录",
+    "轻量服务器安全防护"
   ]
 }
