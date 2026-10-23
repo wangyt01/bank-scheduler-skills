@@ -1,331 +1,115 @@
 ---
 name: changelog-record
-description: 当用户进行项目代码修改、修复bug、新增需求、优化功能或任何项目变更时自动触发，负责识别变更点并生成标准化变更日志，保存至需求设计/changelogs目录。
-version: 1.3.0
+description: 项目代码变更时自动生成标准化变更日志（问题/根因/方案/文件清单/验证/效果），同一需求或 bug 追加到同一份文档，文件名中文命名可带工单号，按月归档并支持一键月度合并。当用户修改代码、修复 bug、新增需求、优化/重构、配置变更、提交更改请求时触发；触发词：变更日志、改动记录、changelog、变更记录、月度合并、工单变更记录、发布说明、这个改动的记录写一下。
+version: 1.4.0
 agent_created: true
 slug: changelog-record
 displayName: 变更日志记录
-summary: 项目代码变更时自动生成标准化变更日志（问题描述/根因/方案/文件清单/验证/效果），同一需求或bug追加到同一份文档，文件名中文命名并支持携带工单号，按月份目录归档。
+summary: 开发过程实时留痕的变更日志技能：脚本自动生成标准化 7 节文档，支持 git 状态自动填充文件清单、工单号入文件名、同一需求/bug 追加、关键词查历史、月度合并为 Keep a Changelog 分类稿，按月份目录归档。
 license: MIT
 category: devtools
+platforms: [WorkBuddy]
 ---
 
-# 变更日志记录技能
+# 变更日志记录
+
+开发过程实时留痕：问题 → 根因 → 方案 → 文件清单 → 验证 → 效果。与"事后从 git log 汇总发版说明"类工具互补——本技能记录的是**改动为什么发生**，不是提交列表。
 
 ## 触发条件
 
-满足以下任意场景时自动启用本技能：
-1. 用户修改代码文件（新增、修改、删除）
-2. 用户修复bug或解决问题
-3. 用户新增功能需求
-4. 用户优化或重构代码
-5. 用户进行配置变更
-6. 用户提交代码更改请求
+代码新增/修改/删除、修 bug、新增需求、优化重构、配置变更、提交更改请求时触发；用户说"写个变更日志 / changelog / 记一下这次改动 / 月度合并 / 查一下某工单的变更记录"也触发。
 
 ## 执行步骤
 
+### 1. 先核对变更清单（禁止凭记忆列文件）
 
-### 第一步：识别变更点
+- 有 git：先跑 `git status --short`，或直接让脚本 `--git-diff` 自动填充文件表（路径与类型取自真实状态，杜绝漏文件）；
+- 无 git：以实际读到的修改文件为准。
 
-在开始编写变更日志前，必须明确以下信息：
-- 变更时间：精确到分钟的时间戳（格式：YYYY-MM-DD HH:MM:SS）
-- 变更类型：新增功能/修复缺陷/优化改进/重构代码/配置变更
-- 变更内容：详细描述变更点，包含问题描述、解决方案、修改的文件和代码
-- 变更人：记录执行变更的人员
-- 影响范围：受影响的模块、功能、接口或数据库表
+同时明确：变更类型、触发原因、问题/根因/方案、影响范围（`--impact`）、变更人（`--author`，缺省取 git 用户名）。
 
-### 第二步：使用脚本生成变更日志
+### 2. 生成日志
 
-> ⚠️ **脚本位置（重要，务必先读）**：脚本**随本 skill 自带**，与 SKILL.md 同级，即
-> `<skill目录>/changelog_recorder.py`。
-> - WorkBuddy 已安装用户：用户主目录下 `.workbuddy\skills\changelog-record\changelog_recorder.py`
-> - 其他环境：将 `<skill目录>` 替换为 skill 实际存放路径。
-> **禁止**在当前工作区搜索 `scripts/generate_changelog.py` 或任何同名脚本——那是旧文档笔误，
-> 工程里从来没有这个文件。直接按下方方式调用，任何工作区均可用。
+> ⚠️ **脚本随本 skill 自带**，与 SKILL.md 同级：`<skill目录>/changelog_recorder.py`
+> （WorkBuddy 已安装用户：`~/.workbuddy/skills/changelog-record__skillhub/changelog_recorder.py`）。
+> **不要**在工作区搜索 `scripts/generate_changelog.py` 之类——那是旧笔误，工程里没有此文件。
+
+新建（默认模式）：
 
 ```bash
-python "<skill目录>/changelog_recorder.py" \
-    --type "Bug修复" \
-    --summary "中文摘要" \
-    --ticket "795803" \
-    --out-dir "<当前工程根目录>/需求设计/changelogs" \
-    --trigger "变更触发原因" \
-    --description "问题详细描述..." \
-    --root_cause "根因分析..." \
-    --solution "解决方案..." \
-    --files "文件路径|修改类型|修改内容;文件路径|修改类型|修改内容" \
-    --verification "测试验证内容..." \
-    --effects "效果1,效果2,效果3" \
-    --related "关联变更..."
+python "<skill目录>/changelog_recorder.py" --type "Bug修复" --summary "中文摘要" \
+    --ticket "795803" --author "张三" --impact "影响模块/接口/表" \
+    --out-dir "<工程根>/需求设计/changelogs" --git-diff . --git-exclude ".vscode,需求设计" \
+    --trigger "触发原因" --description "问题描述" --root_cause "根因" --solution "方案" \
+    --files "路径|修改类型|修改内容;路径|修改类型|修改内容" \
+    --verification "测试验证" --effects "效果1,效果2" --related "关联变更"
 ```
 
-**追加模式（同一需求/同一 bug 的后续修改必须使用）**：
+追加（同一需求/同一 bug 的后续修改，必须用此模式）：
 
 ```bash
-python "<skill目录>/changelog_recorder.py" \
-    --append "<既有变更日志文档绝对路径>" \
-    --type "Bug修复" \
-    --summary "中文摘要" \
-    --trigger "变更触发原因" \
-    --description "问题详细描述..." \
-    --root_cause "根因分析..." \
-    --solution "解决方案..." \
-    --files "文件路径|修改类型|修改内容" \
-    --verification "测试验证内容..." \
-    --effects "效果1,效果2"
+python "<skill目录>/changelog_recorder.py" --append "<既有文档绝对路径>" \
+    --type "Bug修复" --summary "中文摘要" --trigger "..." --description "..." \
+    --root_cause "..." --solution "..." --files "..." --verification "..." --effects "..."
 ```
 
-**参数说明**：
-- `--type`：变更类型（Bug修复、功能优化、新增功能、重构代码、配置变更等）
-- `--summary`：变更摘要（**必须使用中文**，用于生成文件名，如 `修复登录超时`，必填）
-- `--ticket`：问题号或需求工单号（可选，存在时**添加在文件名日期后面**，如 `795803`，生成 `YYYYMMDDHHMMSS-795803-中文摘要.md`）
-- `--append`：追加模式，向指定既有变更日志文档追加「变更轮次」小节，**不新建文件**；针对同一个需求或同一个 bug 的后续修改必须使用此模式
-- `--out-dir`：输出根目录，指向**当前工程**的 `需求设计/changelogs` 目录（脚本自动在其下建 `YYYYMM` 月份子目录；省略时默认 `<当前工作目录>/需求设计/changelogs`）
-- `--trigger`：变更触发原因
-- `--description`：问题描述
-- `--root_cause`：根因分析
-- `--solution`：解决方案
-- `--files`：修改的文件，格式为 `文件路径|修改类型|修改内容`，多个文件用分号分隔
-- `--verification`：测试验证内容
-- `--effects`：变更效果，多个效果用逗号分隔
-- `--related`：关联变更
+查询 / 合并：
 
-**脚本功能**：
-- ✅ 自动使用 `datetime.now()` 获取当前时间（文件名时间戳与内容生成时间保证一致）
-- ✅ 自动在 `--out-dir` 下按 `YYYYMM` 创建月份目录
-- ✅ `--ticket` 支持将问题号/需求工单号添加在文件名日期后面
-- ✅ `--append` 支持向既有文档追加「变更轮次」小节（同一需求/同一 bug 不新建多份文档）
-- ✅ `--files` 自动转换为标准 Markdown 表格行，`--effects` 自动转换为 `✅` 列表
-- ✅ 生成符合本 skill 标准格式的变更日志文件
-- ✅ 自动生成文件名（格式：`YYYYMMDDHHMMSS-{工单号}-中文摘要.md`，工单号缺省时为 `YYYYMMDDHHMMSS-中文摘要.md`）
-- ✅ 确保文件名时间戳与内容时间戳一致
-- ✅ 生成标准化格式的变更日志
-
-### 第三步：手动编写（仅当脚本不可用时）
-
-如果脚本不可用，必须严格按照以下步骤手动编写：
-
-#### 3.1 获取当前时间（强制）
-
-**必须使用以下Python代码获取当前时间，禁止手动输入时间**：
-
-```python
-from datetime import datetime
-
-# 获取当前时间戳（格式：YYYYMMDDHHMMSS）
-timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-
-# 获取格式化的当前时间（格式：YYYY-MM-DD HH:MM:SS）
-formatted_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+```bash
+python "<skill目录>/changelog_recorder.py" --find "795803 或 关键词"   # 命中输出路径，退出码 1 表示未找到
+python "<skill目录>/changelog_recorder.py" --merge 202610              # 生成 202610_changelog.md
 ```
 
-**关键注意事项**：
-- 必须使用 `datetime.now()` 获取本地时间，禁止使用 `datetime.utcnow()`
-- **禁止手动输入时间戳**，必须通过代码自动生成
-- 文件名中的时间戳和文件内容中的"生成时间"必须一致
+| 参数 | 说明 |
+| --- | --- |
+| `--type` / `--summary` | 必填。类型如 Bug修复/功能优化/新增功能/重构代码/配置变更；摘要必须中文（决定文件名） |
+| `--ticket` | 工单号，紧跟在文件名时间戳后：`YYYYMMDDHHMMSS-795803-中文摘要.md` |
+| `--author` / `--impact` | 变更人（缺省取 `git config user.name`）/ 影响范围，落在正文头部 |
+| `--git-diff [REPO]` | 从 `git status --porcelain` 自动填文件表；`--files` 只补语义列，两处合并去重 |
+| `--git-exclude` | 排除路径含指定子串的条目（如 `.vscode,需求设计`） |
+| `--append` | 追加「变更轮次」小节，不新建文件 |
+| `--find` | 按工单号/关键词查历史文档（文件名或正文命中） |
+| `--merge YYYYMM` | 聚合当月文档为 `{YYYYMM}_changelog.md`，按 Added/Fixed/Changed/Removed 分类 |
+| `--out-dir` | 默认 `<cwd>/需求设计/changelogs`，脚本自动建 `YYYYMM` 子目录 |
 
-#### 3.2 时间验证（强制）
+脚本行为保证：时间戳由 `datetime.now()` 生成（文件名与正文一致）；`--files` 转 Markdown 表格、`--effects` 转 ✅ 列表；退出码 0 成功 / 1 未命中或输入错误 / 2 参数格式错。
 
-在保存变更日志之前，必须执行以下验证步骤：
+### 3. 命名与目录
 
-```python
-from datetime import datetime
+- 文件：`{YYYYMMDDHHMMSS}-{工单号}-{中文摘要}.md`，无工单号时省略该段；摘要必须中文；
+- 目录：`需求设计/changelogs/{YYYYMM}/`（脚本自动创建）；
+- 一个需求/一个 bug 一份文档；不同事项不合并。
 
-# 获取当前系统时间
-current_time = datetime.now()
-current_timestamp = current_time.strftime("%Y%m%d%H%M%S")
-current_formatted = current_time.strftime("%Y-%m-%d %H:%M:%S")
+### 4. 追加判定（同一事项不建多份）
 
-# 验证时间戳与系统时间是否一致（允许±2分钟误差）
-timestamp_diff = abs(int(timestamp) - int(current_timestamp))
-if timestamp_diff > 200:  # 超过2分钟差异
-    print(f"警告：时间戳 {timestamp} 与当前时间 {current_timestamp} 不一致！")
-    print(f"请使用 datetime.now() 重新生成时间戳")
-    # 强制使用当前时间
-    timestamp = current_timestamp
-    formatted_time = current_formatted
+先用 `--find "<工单号或关键词>"` 查：命中 → `--append "<路径>"` 追加轮次；未命中 → 新建。
+判定优先工单号；无工单号时按语义（同一问题的再次修复、同一需求的迭代优化均视为同一事项）。
 
-# 验证文件名时间戳与内容时间戳一致
-file_timestamp = os.path.basename(file_path).split('-')[0]
-if file_timestamp != timestamp:
-    print(f"错误：文件名时间戳 {file_timestamp} 与内容时间戳 {timestamp} 不一致！")
-    raise ValueError("时间戳不一致，请修正")
-```
+### 5. 月度合并
 
-**验证规则**：
-1. 时间戳必须与系统当前时间一致（允许±2分钟误差）
-2. 文件名中的时间戳必须与文件内容中的"生成时间"完全一致
-3. 如果时间不一致，必须重新获取当前时间并修正
+`--merge YYYYMM` 一条命令产出 `{YYYYMM}_changelog.md`（含分类清单 + 明细索引表），替代人工汇总；原始独立文档保留，是否清理由用户决定。
 
-#### 3.3 标准格式
+### 6. 文件删除
 
-按照以下标准格式编写变更日志：
+删除任何文件必须走回收站并先在日志中记录，禁止 `rm`/`os.remove()` 直接删。细则见 `references/fallback.md`。
 
-```markdown
-# 变更记录 · {timestamp}
+## 安全边界
 
-> 生成时间：{formatted_time}（GMT+8）｜ 本次类型：{变更类型} ｜ 状态：已完成
-> 触发：{变更触发原因}
+- 只写 Markdown 到 `需求设计/changelogs`；不写数据库、不发网络请求、不改业务代码；
+- `--git-diff` 只读 `git status`，不执行 add/commit/checkout 等写操作；
+- 删除文件仅走系统回收站，可恢复。
 
-## 1. 问题描述
+## 脚本不可用时
 
-{详细描述问题现象、复现步骤}
-
-## 2. 根因分析
-
-{分析问题根本原因，包含代码片段和问题说明}
-
-## 3. 解决方案
-
-{描述解决方案，包含修改的文件和关键代码}
-
-## 4. 修改的文件
-
-| 文件 | 修改类型 | 修改内容 |
-| --- | --- | --- |
-| {文件路径} | {新增/修改/删除} | {简要说明} |
-
-## 5. 测试验证
-
-{测试结果和验证说明}
-
-## 6. 变更效果
-
-- ✅ {效果1}
-- ✅ {效果2}
-
-## 7. 关联变更
-
-{关联的需求、修复记录等}
-```
-
-### 第四步：保存变更日志
-
-#### 4.1 文件命名规则（独立文件）
-
-**规则**：每个需求变更单独记录为一个文件；针对**同一个需求或同一个 bug** 的后续修改禁止新建文档，必须追加到同一份文档（见 4.4 追加记录规则）。月底由用户自行合并。
-
-- **文件命名**：`{timestamp}-{工单号}-{中文摘要}.md`
-  - 时间戳格式：YYYYMMDDHHMMSS（通过 `datetime.now().strftime("%Y%m%d%H%M%S")` 生成）
-  - 工单号：问题号或需求工单号（如有），**紧跟在日期时间戳后面**；无工单号时省略该段
-  - 中文摘要：简短描述本次变更，**必须使用中文命名**（禁止使用英文、拼音或英文字母摘要）
-  - 示例：`20260930161530-795803-智能认领规则改为公共参数.md`、`20260930162000-修复回单下载超时.md`
-
-- **保存目录（按月份分组）**：`\需求设计\changelogs\{YYYYMM}/`
-  - 例如：2026年7月的变更日志保存到 `changelogs/202607/` 目录
-  - 月份文件夹从时间戳中提取前6位（YYYYMM）自动生成
-  - 模板文件 `changelog_template.md` 保留在 `changelogs/` 根目录，不放入月份子目录
-
-#### 4.2 合并策略
-
-1. **日常记录**：新需求/新 bug 创建独立文件，保存在对应月份目录下；同一需求/同一 bug 的后续修改追加到同一份文档
-2. **月底合并**：由用户在月底手动进行月度合并，生成 `{YYYYMM}_changelog.md`
-3. **归档保留**：合并后可选择保留或删除原始独立文件
-
-#### 4.3 变更文件格式
-
-```markdown
-# 变更记录 · {变更编号}
-
-> 生成时间：{YYYY-MM-DD HH:MM:SS}（GMT+8）｜ 本次类型：{变更类型} ｜ 状态：{状态}
-> 触发：{变更触发原因}
-
-## 1. 问题描述
-
-{详细描述问题现象、复现步骤}
-
-## 2. 根因分析
-
-{分析问题根本原因，包含代码片段和问题说明}
-
-## 3. 解决方案
-
-{描述解决方案，包含修改的文件和关键代码}
-
-## 4. 修改的文件
-
-| 文件 | 修改类型 | 修改内容 |
-| --- | --- | --- |
-| {文件路径} | {新增/修改/删除} | {简要说明} |
-
-## 5. 测试验证
-
-{测试结果和验证说明}
-
-## 6. 变更效果
-
-- ✅ {效果1}
-- ✅ {效果2}
-
-## 7. 关联变更
-
-{关联的需求、修复记录等}
-```
-
-#### 4.4 追加记录规则（同一需求/同一 bug 不建多份文档）
-
-针对**同一个需求或同一个 bug** 的多次修改，**禁止生成多份变更日志文档**，必须统一追加到同一份文档中：
-
-1. **先查再建**：新建文档前，先在 `需求设计/changelogs/{YYYYMM}/`（及相邻月份目录）中按工单号或中文摘要关键词查找是否已有对应文档
-2. **已有文档 → 追加**：使用脚本 `--append "<既有文档路径>"` 在文档末尾追加「变更轮次」小节（含变更类型、触发原因、问题描述、根因、方案、修改文件表、验证、效果），不新建文件
-3. **无文档 → 新建**：按 4.1 命名规则新建，存在工单号时必须携带在文件名日期后面
-4. **判定标准**：优先以工单号为准；无工单号时按需求/bug 的语义判断是否为同一事项（同一问题的再次修复、同一需求的迭代优化均视为同一事项）
-
-### 第五步：文件删除规范（强制）
-
-**删除文件时必须遵循以下规则**：
-
-1. **禁止直接删除**：禁止使用 DeleteFile 工具、`os.remove()`、`rm` 命令等直接删除文件
-2. **使用回收站**：必须将文件移动到系统回收站，确保后续可恢复
-3. **备份确认**：删除前必须确认文件内容已备份或已推送到 Git 仓库
-4. **记录删除**：在变更日志中详细记录被删除的文件信息
-
-**实现方式**：
-- 使用 Python 的 `send2trash` 库将文件移动到回收站
-- 代码示例：
-  ```python
-  from send2trash import send2trash
-  
-  # 删除前确认文件存在
-  if os.path.exists(file_path):
-      # 确认已备份到Git
-      import subprocess
-      result = subprocess.run(['git', 'log', '--oneline', '-1', '--', file_path], 
-                              capture_output=True, text=True)
-      if result.returncode == 0 and result.stdout.strip():
-          print(f"✅ 文件 {file_path} 已备份到Git，继续删除")
-      else:
-          print(f"⚠️  文件 {file_path} 未备份到Git，请先确认已另存备份，再移至回收站（可恢复）")
-      
-      # 移动到回收站
-      send2trash(file_path)
-      print(f"✅ 文件 {file_path} 已移动到回收站")
-  else:
-      print(f"❌ 文件 {file_path} 不存在")
-  ```
-
-**恢复操作**：
-如果需要恢复已删除的文件：
-1. 从系统回收站恢复（如果文件被移动到回收站）
-2. 从 Git 历史恢复（如果文件已提交到仓库）：
-   ```bash
-   git checkout HEAD -- {文件路径}
-   ```
+按 `references/fallback.md` 手动生成：取时间（`datetime.now()`）→ 保存前时间校验 → 套用唯一模板 → 按命名规则落盘。
 
 ## 注意事项
 
-1. 每次项目修改完成后，必须立即编写并保存变更日志
-2. 同一需求/同一 bug 的修改追加到同一份文档（`--append`），只有新需求/新 bug 才新建文件；文件名必须中文命名，有问题号/需求工单号时添加在日期后面
-3. 修改的文件列表必须包含所有受影响的文件
-4. 测试验证部分必须包含实际测试结果
-5. 关联变更部分需引用相关的需求文档或修复记录
-6. 禁止手动输入时间，必须使用 `datetime.now()` 获取当前时间
-7. 月底由用户自行进行月度合并
+1. 每次项目修改完成后立即生成，不攒批；
+2. 文件清单必须完整（优先用 `--git-diff`），测试验证写实际结果，不写"已验证"空话；
+3. 禁止手输时间戳；同一事项禁止建多份文档；
+4. 变更日志本身属于本地留痕材料，若存放目录被 `.gitignore` 忽略则不入库，提交前确认。
 
 ## 优先级规则
 
-本技能优先级高于其他技能，确保变更日志记录不会被遗漏或跳过。无论其他任务执行结果如何，变更日志必须在任务完成后立即生成。
-
-**开发约束优先级**：
-1. 文件操作（必须遵守删除规范）
-2. 变更日志记录（任务完成后必须执行）
+本技能优先级高于其他技能：任务完成后必须立即补变更日志。开发约束优先级：文件操作安全（回收站）> 变更日志记录。
