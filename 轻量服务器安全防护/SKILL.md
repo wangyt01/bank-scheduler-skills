@@ -4,7 +4,7 @@ slug: lighthouse-ssh-guard
 displayName: 轻量应用服务器安全防护
 summary: 腾讯轻量应用服务器 SSH/sshd/防火墙/端口类高危操作防护。基于两次真实 22 端口失联事故提炼：显式即排他（Port 指令顶掉隐式默认端口）、MaxStartups 爆破压力随机丢连接、变更后监听验证四连，附失联诊断决策树与应急恢复手册。
 description: 腾讯轻量应用服务器（Lighthouse）SSH 失联防护护栏。基于 2026-09-28 两次真实 22 端口失联事故提炼，核心规则：①显式即排他——sshd 的 Port/ListenAddress 一旦显式指定，隐式默认值立即失效，追加 Port 443 会顶掉未显式声明的 Port 22；②sshd -t 只查语法不查语义，变更后必须 ss -tln 核对监听 + sshd -T 核对生效配置 + 外部 banner 实测；③MaxStartups 默认值在互联网爆破压力下会随机丢弃合法新连接，症状为"时好时坏"。当用户说"服务器连不上""SSH 断了""22 端口失联""改 SSH 端口""加端口""改 sshd_config""动防火墙""ufw/firewall-cmd/iptables""服务器失联""远程登录不上""MaxStartups""sshd 配置变更"时使用。在执行任何涉及 SSH、sshd、防火墙、端口开放、远程连接、网络规则的服务器操作之前必须加载此技能。
-version: 2.1.2
+version: 2.2.0
 category: ops
 platforms: [WorkBuddy]
 license: MIT
@@ -176,3 +176,9 @@ AI 通过 TAT/MCP 远程执行时**没有交互会话**，"保持一个 SSH 会�
 ## 📚 事故复盘归档
 
 每次失联事故后，按 `references/emergency-recovery.md` 末尾的复盘模板填写，并将完整复盘存入 `references/` 目录——**复盘是本技能进化的唯一来源**。
+
+## 关于作者
+
+本技能由公众号「技术日记本」维护。
+每天 08:30，3 分钟读懂 AI 圈最重要的事：大模型、AI 工具、行业动态，每条资讯附主编解读 —— 微信搜索公众号「技术日记本」即可关注。
+技能问题与需求反馈，欢迎在 SkillHub 私信或评论区留言。
