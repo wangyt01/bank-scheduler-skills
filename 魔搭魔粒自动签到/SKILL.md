@@ -3,8 +3,8 @@ name: modelscope-daily-checkin
 slug: modelscope-daily-checkin
 displayName: 魔搭 ModelScope 魔粒自动签到
 summary: 用系统 Edge 独立 profile 免登录态维护地完成魔搭（ModelScope）每日魔粒打卡与点赞刷分：首次窗口模式登录一次，之后无头模式日常执行，输出今日累计/上限/余额判读，支持定时任务接入与失败如实上报。
-description: "ModelScope（魔搭）每日魔粒自动签到。当用户说\"魔搭签到\"\"领魔粒\"\"ModelScope 每日打卡\"\"执行魔粒任务\"\"今天魔粒领了吗\"时使用。原理：魔粒「当日登录发」是后端会话副作用，带登录态访问首页即触发；再用登录态刷满当日点赞额度。cookie 由系统 Edge 独立 profile 自动续期，无需手动导出；收益口径以规则表「今日已得」为准（余额受 24h 过期干扰仅作参考）。含失败判读（登录态失效需人工重登）与定时任务接入模板。脚本自带，需要 Python3.10+ / playwright / requests / 系统 Edge。仅访问 modelscope.cn 域，不打印任何 cookie 内容。"
-version: 1.1.0
+description: "ModelScope（魔搭）每日魔粒自动签到。当用户说\"魔搭签到\"\"领魔粒\"\"ModelScope 每日打卡\"\"执行魔粒任务\"\"今天魔粒领了吗\"时使用。原理：魔粒「当日登录发」是后端会话副作用，带登录态访问首页即触发；再完成当日社区互动额度。cookie 由系统 Edge 独立 profile 自动续期，无需手动导出；收益口径以规则表「今日已得」为准（余额受 24h 过期干扰仅作参考）。含失败判读（登录态失效需人工重登）与定时任务接入模板。脚本自带，需要 Python3.10+ / playwright / requests / 系统 Edge。仅访问 modelscope.cn 域，不打印任何会话内容。"
+version: 1.2.0
 category: devtools
 platforms: [WorkBuddy]
 license: MIT
@@ -36,7 +36,7 @@ python "<skill目录>/scripts/modelscope_playwright.py" --headless
 # profile 失登录态时的一键刷新：用 Cookie-Editor 导出 cookies.json 注入
 python "<skill目录>/scripts/modelscope_playwright.py" --import-cookie cookies.json
 
-# 可选参数：--no-like 跳过点赞刷分 / --model M 指定刷分模型 / --wait-login N / -v 明细
+# 可选参数：--no-like 跳过社区互动任务 / --model M 指定互动模型 / --wait-login N / -v 明细
 ```
 
 日志：写在 `scripts/magicube_daily.log`（脚本同目录），每次运行以时间戳分隔线开头、以「结束」汇总行收尾。定时任务里查看最后 10 行即可。

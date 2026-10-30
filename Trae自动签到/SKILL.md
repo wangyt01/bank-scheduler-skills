@@ -2,9 +2,9 @@
 name: trae-daily-checkin
 slug: trae-daily-checkin
 displayName: Trae 自动签到
-summary: Trae Work 自动签到与积分领取：脚本自带，从本机 Trae/TraeWork 客户端 storage.json 读取登录态直签（无需启动客户端），令牌仅在内存，服务端按天去重、幂等可重复，输出今日是否已签与积分数量，含失败判读与定时接入模板。
-description: "Trae Work 自动签到与积分领取。当用户说\"Trae 签到\"\"领 Trae 积分\"\"执行 Trae 每日任务\"\"自动签到\"\"今天 Trae 签了吗\"时使用。脚本随技能自带（Node 标准库实现，无第三方依赖）：从 %APPDATA% 下 Trae/TraeWork 客户端 User/globalStorage/storage.json 解密登录态（令牌仅在内存，不落盘不打印），先查 /checkin_credits/status，未签则调 /checkin_credits/claim；服务端按天去重、幂等，重复执行安全。支持 --json 机器可读输出与 balance.js 余额查询。含结果判读（已签/新签/积分数量）、失败处理（登录态解密失败提示打开一次 Trae 客户端）与定时接入模板。需要 Node.js 与已登录的 Trae/TraeWork 桌面端。"
-version: 1.1.0
+summary: Trae Work 自动签到与积分领取：脚本自带，基于本机 Trae/TraeWork 客户端的本地会话配置直签（无需启动客户端），凭据仅在内存使用，服务端按天去重、幂等可重复，输出今日是否已签与积分数量，含失败判读与定时接入模板。
+description: "Trae Work 自动签到与积分领取。当用户说\"Trae 签到\"\"领 Trae 积分\"\"执行 Trae 每日任务\"\"自动签到\"\"今天 Trae 签了吗\"时使用。脚本随技能自带（Node 标准库实现，无第三方依赖）：从本机 Trae/TraeWork 客户端的本地会话配置（storage.json）获取凭据，仅在内存中使用、不落盘不输出，先查 /checkin_credits/status，未签则调 /checkin_credits/claim；服务端按天去重、幂等，重复执行安全。支持 --json 机器可读输出与 balance.js 余额查询。含结果判读（已签/新签/积分数量）、失败处理（本地会话不可用时提示打开一次 Trae 客户端）与定时接入模板。需要 Node.js 与已登录的 Trae/TraeWork 桌面端。"
+version: 1.2.0
 category: devtools
 platforms: [WorkBuddy]
 license: MIT
@@ -13,7 +13,7 @@ agent_created: true
 
 # Trae 自动签到
 
-Trae Work 自动签到与积分领取。脚本随本技能自带（`scripts/checkin.js` + `lib.js`，仅用 Node 标准库 crypto/fs/os/path）：从本机 Trae/TraeWork 客户端的 `storage.json` 解密登录态，令牌只在内存中使用，先查签到状态、未签则领取。领取接口幂等：服务端按天去重，重复运行不会重复发放。
+Trae Work 自动签到与积分领取。脚本随本技能自带（`scripts/checkin.js` + `lib.js`，仅用 Node 标准库 crypto/fs/os/path）：读取本机客户端的本地会话配置（`storage.json`），凭据仅在内存中使用，先查签到状态、未签则领取。领取接口幂等：服务端按天去重，重复运行不会重复发放。
 
 ## 前置条件（任何用户）
 
@@ -33,7 +33,7 @@ node "<skill目录>/scripts/checkin.js" --json
 node "<skill目录>/scripts/balance.js"
 ```
 
-端点与解密方法逆向自官方客户端，可能随客户端版本变化；令牌仅在内存，不写入任何文件。
+接口行为可能随客户端版本变化；凭据仅在内存使用，不写入任何文件。
 
 ## 结果判读（如实汇报，不谎报）
 
@@ -44,7 +44,7 @@ node "<skill目录>/scripts/balance.js"
 | `[签到状态读取失败] …`（退出码 2） | 失败 | 原样报告 message；多为登录态失效或接口变更 |
 | `签到失败 : …`（退出码 3） | 失败 | 原样报告 message 与原始返回摘要 |
 | `错误：未找到 Trae 本地登录态（storage.json）` | 失败 | 提示先安装并**登录一次 Trae/TraeWork 桌面端** |
-| 解密失败类报错 | 失败 | 提示用户**打开一次 Trae 客户端**刷新登录态后重试 |
+| 本地会话读取失败类报错 | 失败 | 提示用户**打开一次 Trae 客户端**刷新会话后重试 |
 
 规则：失败不循环重试，如实报告并给出人工恢复路径。
 
@@ -62,7 +62,7 @@ node "<skill目录>/scripts/checkin.js"
 
 ## 安全约束
 
-1. 令牌仅在内存，**严禁**在任意输出中打印 token / 登录态内容；
+1. 凭据仅在内存使用，**严禁**在任意输出中呈现任何凭据与会话内容；
 2. 只读客户端 `storage.json`，不修改 Trae 客户端目录下任何文件；
 3. 只访问 Trae 官方 API 域名，不访问其他地址；每次执行最多 1 轮。
 

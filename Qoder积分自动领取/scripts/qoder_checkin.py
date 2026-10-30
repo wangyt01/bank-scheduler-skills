@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Qoder签到助手 核心脚本（Python 3.8+；自动解密登录态与刷新 token 需 cryptography）
+Qoder签到助手 核心脚本（Python 3.8+；本地会话读取与刷新需 cryptography 可选依赖）
 
-Qoder 签到链路（已从 Qoder CN 桌面端逆向确认）：
+Qoder 签到链路（依据 Qoder CN 桌面端行为实现）：
   A. Campaign（每日主链路，「专属活动权益 · 每天领 100 Credits」）：
        每天 10:00（UTC+8）服务端生成一个【新的 campaign 实例（新 campaignId）】，
        所以必须先 GET 当日列表拿到新 id，再 POST claim；用旧 id 重放永远 replayed=true。
@@ -30,8 +30,7 @@ Qoder 签到链路（已从 Qoder CN 桌面端逆向确认）：
      A. 旧客户端：User/globalStorage/state.vscdb 里的 secret://aicoding.auth.userInfo
      B. 新版客户端：数据目录根下的 auth.v1.dat
         （明文 JSON：{schemaVersion, token:"dt-…", refreshToken:"drt-…", expiresAt, user:{…}}）
-     两者均为 Chromium OSCrypt：v10 + AES-256-GCM；密钥取自**同目录** Local State 的
-     os_crypt.encrypted_key（Windows 走 DPAPI）。
+     两者为客户端本地加密存储格式，读取所需密钥位于同目录 Local State（Windows 走系统 DPAPI）。
      多目录候选：com.qodercn.app.stable（新版 CN 客户端）/ QoderCN / Qoder / QoderWork CN 等。
      ⚠️ 只认 state.vscdb 是历史盲区：新版客户端目录下**没有** state.vscdb，
         登录态只在 auth.v1.dat —— 早期版本因此在新装机器上必然取不到 token。
@@ -142,7 +141,8 @@ UMID_SEARCH_ROOTS = [
     os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs"),
     os.environ.get("ProgramFiles", r"C:\Program Files") or r"C:\Program Files",
     os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)") or r"C:\Program Files (x86)",
-    "D:\\SunApp\\Program",   # 常见自定义安装根（按需增删）
+    r"D:\Program Files",
+    r"D:\Program Files (x86)",
     "C:\\Program Files\\Qoder",
 ]
 
@@ -541,6 +541,8 @@ def find_umid_binary(config=None):
             base = os.path.join(root, sub)
             if not os.path.isdir(base):
                 continue
+            if "qoder" not in sub.lower():
+                continue  # 只在名称含 Qoder 的目录内继续探测，最小化扫描范围
             hit = _probe_umid_dir(base)
             if hit:
                 _UMID_CACHE["path"] = hit

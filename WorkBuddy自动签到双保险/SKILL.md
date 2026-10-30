@@ -2,9 +2,9 @@
 name: workbuddy-dual-checkin
 slug: workbuddy-dual-checkin
 displayName: WorkBuddy 自动签到双保险
-summary: WorkBuddy「Buddy 加油站」自动签到 + 派猫猫旅行闭环：双引擎自带（主路径签到助手、备份路径积分助手），均支持 5.6.2+ 加密登录态（AES-256-GCM 信封解密，密钥优先扫运行中客户端进程内存），主路径失败自动切换备份，两条路径都失败才判定失败，含 action 判读表与 travel 状态汇报规则。
-description: "WorkBuddy Buddy 加油站自动签到与派猫猫旅行闭环。当用户说\"WorkBuddy 签到\"\"Buddy 加油站打卡\"\"领积分\"\"派猫猫旅行\"\"自动签到\"\"今天签到了吗\"时使用。双引擎随技能自带：主路径 workbuddy_checkin.py，备份路径 buddy_station.py checkin --travel-auto --json；主路径失败或结论缺失时自动切换备份，备份成功（code=0 新签 / code=10001 今日已签）即视为完成，两条路径都失败才判定失败。均支持 WorkBuddy 5.6.2+ AtRestEncryption 加密登录态（AES-256-GCM，密钥优先扫运行中 WorkBuddy.exe 进程内存，可回退明文或 WORKBUDDY_ATREST_KEY 环境变量）。含 action 判读表（clicked/skip_already_signed/error）、猫猫旅行状态汇报规则与定时接入模板。严禁打印任何 token；每条路径最多跑 1 次。"
-version: 1.1.0
+summary: WorkBuddy「Buddy 加油站」自动签到 + 派猫猫旅行闭环：双引擎自带（主路径签到助手、备份路径积分助手），均支持 5.6.2+ 加密登录态（加密信封兼容读取，密钥多级自动定位），主路径失败自动切换备份，两条路径都失败才判定失败，含 action 判读表与 travel 状态汇报规则。
+description: "WorkBuddy Buddy 加油站自动签到与派猫猫旅行闭环。当用户说\"WorkBuddy 签到\"\"Buddy 加油站打卡\"\"领积分\"\"派猫猫旅行\"\"自动签到\"\"今天签到了吗\"时使用。双引擎随技能自带：主路径 workbuddy_checkin.py，备份路径 buddy_station.py checkin --travel-auto --json；主路径失败或结论缺失时自动切换备份，备份成功（code=0 新签 / code=10001 今日已签）即视为完成，两条路径都失败才判定失败。均支持 WorkBuddy 5.6.2+ AtRestEncryption 加密登录态（密钥多级自动定位，可回退本地密钥文件或 WORKBUDDY_ATREST_KEY 环境变量）。含 action 判读表（clicked/skip_already_signed/error）、猫猫旅行状态汇报规则与定时接入模板。严禁打印任何 token；每条路径最多跑 1 次。"
+version: 1.2.0
 category: devtools
 platforms: [WorkBuddy]
 license: MIT
@@ -19,7 +19,7 @@ WorkBuddy「Buddy 加油站」自动签到 + 派猫猫旅行闭环。双引擎�
 
 1. Python ≥ 3.10（纯标准库，无需 pip 安装）；
 2. 本机安装 **WorkBuddy 桌面端**并登录过；
-3. 加密登录态支持（WorkBuddy **5.6.2+** AtRestEncryption）：两个引擎均内置 AES-256-GCM 信封解密，密钥获取顺序为——扫运行中的 WorkBuddy.exe 进程内存 → `~/.workbuddy/auth` 明文兜底 → `WORKBUDDY_ATREST_KEY` 环境变量（44 字符 base64）；
+3. 加密登录态支持（WorkBuddy **5.6.2+** AtRestEncryption）：两个引擎均内置加密信封兼容读取，密钥多级自动定位：运行中的客户端 → `~/.workbuddy/auth` 明文兜底 → `WORKBUDDY_ATREST_KEY` 环境变量（44 字符 base64）；
 4. **定时执行隐患**：若计划任务触发时客户端未启动、且无明文兜底/无 KEY 环境变量，两条路径会同时失败。建议保证客户端已启动，或配置 `WORKBUDDY_ATREST_KEY`。
 
 ## 执行

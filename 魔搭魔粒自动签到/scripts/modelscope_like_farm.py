@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-魔搭「点赞刷魔粒」脚本（纯 requests，无需浏览器）
+魔搭「社区互动领魔粒」脚本（纯 requests，无需浏览器）
 
 原理（2026-09-10 实测，2026-10-23 复核）：
   规则 interaction_like「收藏/喜欢」= 对其他用户发布点击收藏，每次 +2 魔粒。
   每日上限由服务端下发，**不要硬编码**：2026-09-10 是 20 次，2026-10-21 起改成 10 次（=20 粒）。
   接口：PUT /api/v1/models/{owner}/{name}/stars    收藏   -> +2
         PUT /api/v1/models/{owner}/{name}/unstar   取消收藏 -> 不扣分、不减次数
-  因此对同一模型反复 star -> unstar -> star，即可把当日额度刷满。
+  因此 star 与 unstar 交替进行，即可完成当日互动额度。
 
   ⚠️ 状态残留是这套机制唯一的死穴：star 之后若进程崩溃/超时没走到 unstar，
   模型会永久停在「已收藏」。此后每次 star 都返回 400「重复操作」，脚本若一见失败就
@@ -15,8 +15,8 @@
   对策：每轮 unstar 放进 finally 保证执行；遇重复操作错误先 unstar 再重试一次。
 
 用法：
-  python modelscope_like_farm.py -c cookies.json                 # 刷满当日剩余额度
-  python modelscope_like_farm.py -c cookies.json --rounds 5      # 只刷 5 轮
+  python modelscope_like_farm.py -c cookies.json                 # 完成当日剩余互动额度
+  python modelscope_like_farm.py -c cookies.json --rounds 5      # 只做 5 轮
   python modelscope_like_farm.py -c cookies.json --model Qwen/Qwen3.8-Flash-Next
   set MS_COOKIE=...  &  python modelscope_like_farm.py           # 环境变量喂 cookie
 

@@ -4,7 +4,7 @@ slug: qoder-credits-claim
 displayName: Qoder 积分自动领取
 summary: Qoder CN 每日 100 Credits 自动领取：脚本自带，接口直签，机器指纹由 Qoder 自带 runtime-info.exe 生成；固定活动生成后 5 分钟运行（错过不补领），以 actionType==CLAIM_BENEFIT 且 claimStatus==CLAIMABLE 为可领判据，输出单行 JSON 按六种 action 如实判读，含风控拦截识别、首次配置探测与定时接入模板。
 description: "Qoder CN 每日 Credits 自动领取。当用户说\"Qoder 签到\"\"领 Qoder 积分\"\"领取 Credits\"\"Qoder 每日任务\"时使用。脚本随技能自带（接口直签，纯标准库）：机器指纹由 Qoder CN 自带 runtime-info.exe 生成，token 缓存与配置写在脚本同目录。活动每天 10:00（UTC+8）生成新 campaignId，固定 10:05 运行，错过不补领；每笔奖励领取后 30 天有效。可领判据必须是 actionType==CLAIM_BENEFIT 且 claimStatus==CLAIMABLE（不要用顶层 claimable 标志）。输出单行 JSON，按六种 action 如实判读（claimed/already_claimed/skip_no_claimable/claim_failed/auth_failed/network_error），含风控拦截（RISK_DEPENDENCY_UNAVAILABLE）识别、首次配置探测脚本 discover_qoder.py 与定时接入模板。严禁打印 token。"
-version: 1.1.0
+version: 1.2.0
 category: devtools
 platforms: [WorkBuddy]
 license: MIT
