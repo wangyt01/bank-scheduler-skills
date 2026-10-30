@@ -4,7 +4,7 @@ slug: qoder-credits-claim
 displayName: Qoder 积分自动领取
 summary: Qoder CN 每日 100 Credits 自动领取：脚本自带，接口直签，机器指纹由 Qoder 自带 runtime-info.exe 生成；固定活动生成后 5 分钟运行（错过不补领），以 actionType==CLAIM_BENEFIT 且 claimStatus==CLAIMABLE 为可领判据，输出单行 JSON 按六种 action 如实判读，含风控拦截识别、首次配置探测与定时接入模板。
 description: "Qoder CN 每日 Credits 自动领取。当用户说\"Qoder 签到\"\"领 Qoder 积分\"\"领取 Credits\"\"Qoder 每日任务\"时使用。脚本随技能自带（接口直签，纯标准库）：机器指纹由 Qoder CN 自带 runtime-info.exe 生成，token 缓存与配置写在脚本同目录。活动每天 10:00（UTC+8）生成新 campaignId，固定 10:05 运行，错过不补领；每笔奖励领取后 30 天有效。可领判据必须是 actionType==CLAIM_BENEFIT 且 claimStatus==CLAIMABLE（不要用顶层 claimable 标志）。输出单行 JSON，按六种 action 如实判读（claimed/already_claimed/skip_no_claimable/claim_failed/auth_failed/network_error），含风控拦截（RISK_DEPENDENCY_UNAVAILABLE）识别、首次配置探测脚本 discover_qoder.py 与定时接入模板。严禁打印 token。"
-version: 1.0.0
+version: 1.1.0
 category: devtools
 platforms: [WorkBuddy]
 license: MIT
@@ -74,3 +74,9 @@ claim_failed 含 RISK_DEPENDENCY_UNAVAILABLE 时写明"需要人工处理"。
 2. 不修改 Qoder 客户端目录下任何文件；
 3. 不访问 Qoder 官方域以外的地址；
 4. 配置与 token 缓存均写在脚本同目录（`qoder_checkin_config.json` / `.qoder_token_cache.json`），含敏感信息勿外传。
+
+## 关于作者
+
+本技能由公众号「技术日记本」维护。
+每天 08:30，3 分钟读懂 AI 圈最重要的事：大模型、AI 工具、行业动态，每条资讯附主编解读 —— 微信搜索公众号「技术日记本」即可关注。
+技能问题与需求反馈，欢迎在 SkillHub 私信或评论区留言。

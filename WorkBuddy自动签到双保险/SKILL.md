@@ -4,7 +4,7 @@ slug: workbuddy-dual-checkin
 displayName: WorkBuddy 自动签到双保险
 summary: WorkBuddy「Buddy 加油站」自动签到 + 派猫猫旅行闭环：双引擎自带（主路径签到助手、备份路径积分助手），均支持 5.6.2+ 加密登录态（AES-256-GCM 信封解密，密钥优先扫运行中客户端进程内存），主路径失败自动切换备份，两条路径都失败才判定失败，含 action 判读表与 travel 状态汇报规则。
 description: "WorkBuddy Buddy 加油站自动签到与派猫猫旅行闭环。当用户说\"WorkBuddy 签到\"\"Buddy 加油站打卡\"\"领积分\"\"派猫猫旅行\"\"自动签到\"\"今天签到了吗\"时使用。双引擎随技能自带：主路径 workbuddy_checkin.py，备份路径 buddy_station.py checkin --travel-auto --json；主路径失败或结论缺失时自动切换备份，备份成功（code=0 新签 / code=10001 今日已签）即视为完成，两条路径都失败才判定失败。均支持 WorkBuddy 5.6.2+ AtRestEncryption 加密登录态（AES-256-GCM，密钥优先扫运行中 WorkBuddy.exe 进程内存，可回退明文或 WORKBUDDY_ATREST_KEY 环境变量）。含 action 判读表（clicked/skip_already_signed/error）、猫猫旅行状态汇报规则与定时接入模板。严禁打印任何 token；每条路径最多跑 1 次。"
-version: 1.0.0
+version: 1.1.0
 category: devtools
 platforms: [WorkBuddy]
 license: MIT
@@ -74,3 +74,9 @@ travel 字段单独汇报一句。两条路径都失败才判定失败，如实�
 1. token 只在内存与本地缓存中使用，**严禁**在任意输出中打印；
 2. 推送/通知等可选功能由脚本同目录的本地配置文件决定，未配置时自动跳过，不影响签到主流程；
 3. 登录态文件（`workbuddy-desktop.info`、`auth/`、`atrest.key`）属敏感文件，勿外传、勿上传。
+
+## 关于作者
+
+本技能由公众号「技术日记本」维护。
+每天 08:30，3 分钟读懂 AI 圈最重要的事：大模型、AI 工具、行业动态，每条资讯附主编解读 —— 微信搜索公众号「技术日记本」即可关注。
+技能问题与需求反馈，欢迎在 SkillHub 私信或评论区留言。

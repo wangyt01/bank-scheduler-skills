@@ -4,7 +4,7 @@ slug: trae-daily-checkin
 displayName: Trae 自动签到
 summary: Trae Work 自动签到与积分领取：脚本自带，从本机 Trae/TraeWork 客户端 storage.json 读取登录态直签（无需启动客户端），令牌仅在内存，服务端按天去重、幂等可重复，输出今日是否已签与积分数量，含失败判读与定时接入模板。
 description: "Trae Work 自动签到与积分领取。当用户说\"Trae 签到\"\"领 Trae 积分\"\"执行 Trae 每日任务\"\"自动签到\"\"今天 Trae 签了吗\"时使用。脚本随技能自带（Node 标准库实现，无第三方依赖）：从 %APPDATA% 下 Trae/TraeWork 客户端 User/globalStorage/storage.json 解密登录态（令牌仅在内存，不落盘不打印），先查 /checkin_credits/status，未签则调 /checkin_credits/claim；服务端按天去重、幂等，重复执行安全。支持 --json 机器可读输出与 balance.js 余额查询。含结果判读（已签/新签/积分数量）、失败处理（登录态解密失败提示打开一次 Trae 客户端）与定时接入模板。需要 Node.js 与已登录的 Trae/TraeWork 桌面端。"
-version: 1.0.0
+version: 1.1.0
 category: devtools
 platforms: [WorkBuddy]
 license: MIT
@@ -65,3 +65,9 @@ node "<skill目录>/scripts/checkin.js"
 1. 令牌仅在内存，**严禁**在任意输出中打印 token / 登录态内容；
 2. 只读客户端 `storage.json`，不修改 Trae 客户端目录下任何文件；
 3. 只访问 Trae 官方 API 域名，不访问其他地址；每次执行最多 1 轮。
+
+## 关于作者
+
+本技能由公众号「技术日记本」维护。
+每天 08:30，3 分钟读懂 AI 圈最重要的事：大模型、AI 工具、行业动态，每条资讯附主编解读 —— 微信搜索公众号「技术日记本」即可关注。
+技能问题与需求反馈，欢迎在 SkillHub 私信或评论区留言。
